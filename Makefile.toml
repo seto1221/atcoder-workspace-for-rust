@@ -1,0 +1,50 @@
+[config]
+skip_core_tasks = true
+default_to_workspace = false
+
+[tasks.an]
+dependencies = ["new"]
+script = ['''
+rm -rf ${@}/.git ${@}/.gitignore
+''','''
+cat << END >> ${@}/Cargo.toml
+
+proconio = { workspace = true }
+
+[dev-dependencies]
+cli_test_dir = { workspace = true }
+END
+''','''
+cat << END > ${@}/src/main.rs
+use proconio::input;
+fn main() {
+	input!{n:i32,a:i32,b:i32,s:String}
+	println!("{} {} {} {}",n,a,b,s);
+}
+END
+''','''
+mkdir ${@}/tests
+cat << END > ${@}/tests/test.rs
+use cli_test_dir::*;
+#[test]
+fn sample1() {
+	let curdir = std::env::current_dir().unwrap();
+	let bin = curdir.file_name().unwrap().to_str().unwrap();
+	let testdir = TestDir::new(bin, "");
+	let output = testdir
+		.cmd()
+		.output_with_stdin(r#"1
+2 3
+test
+"#)
+		.tee_output()
+		.expect_success();
+	assert_eq!(output.stdout_str(), "1 2 3 test\n");
+	assert!(output.stderr_str().is_empty());
+}
+END
+''']
+
+[tasks.new]
+command = "cargo"
+args = ["ws", "create", "--bin", "--edition", "2018", "--name", "${@}", "${@}"]
