@@ -2,7 +2,7 @@
 skip_core_tasks = true
 default_to_workspace = false
 
-[tasks.an]
+[tasks.atcoder_new]
 dependencies = ["new"]
 script = ['''
 rm -rf ${@}/.git ${@}/.gitignore
@@ -16,7 +16,8 @@ cli_test_dir = { workspace = true }
 END
 ''','''
 cat << END > ${@}/src/main.rs
-use proconio::input;
+use proconio::{fastout,input};
+#[fastout]
 fn main() {
 	input!{n:i32,a:i32,b:i32,s:String}
 	println!("{} {} {} {}",n,a,b,s);
@@ -48,3 +49,6 @@ END
 [tasks.new]
 command = "cargo"
 args = ["ws", "create", "--bin", "--edition", "2018", "--name", "${@}", "${@}"]
+
+[tasks.an]
+alias = "atcoder_new"
